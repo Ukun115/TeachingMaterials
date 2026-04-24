@@ -1,0 +1,83 @@
+namespace SoundConfig
+{
+    using R3;
+    using UnityEngine;
+
+    /// <summary>
+    /// サウンド設定画面プレゼンター
+    /// </summary>
+    public class SampleSoundConfigPresenter : MonoBehaviour
+    {
+        [SerializeField] private SampleSoundConfigView _view;
+
+        [Header("サウンド設定の初期設定")]
+        [Range(0f, 1f)][SerializeField] private float _defaultMasterVolume = 1.0f;
+        [Range(0f, 1f)][SerializeField] private float _defaultBgmVolume = 1.0f;
+        [Range(0f, 1f)][SerializeField] private float _defaultSeVolume = 1.0f;
+        [SerializeField] private bool _defaultMute = false;
+        [Space(10)]
+
+        private SampleSoundConfigModel _model = new();
+
+        private readonly CompositeDisposable _disposables = new();
+
+        void Start()
+        {
+            // モデルの初期値設定
+            _model.SetMasterVolume(_defaultMasterVolume);
+            _model.SetBgmVolume(_defaultBgmVolume);
+            _model.SetSeVolume(_defaultSeVolume);
+            _model.SetIsMute(_defaultMute);
+
+            // モデルの値変更を購読してビューを更新
+            Bind();
+
+            // UIの操作を購読してモデルを更新
+            SetupEvents();
+        }
+
+        private void OnDestroy() => _disposables.Dispose();
+
+        /// <summary>
+        /// モデルの値変更を購読してビューを更新
+        /// </summary>
+        private void Bind()
+        {
+            // マスター、BGM、SEのスライダーとミュートトグルの値を各UIに反映
+            _model.MasterVolume.Subscribe(_view.SetMasterSlider).AddTo(_disposables);
+            _model.BgmVolume.Subscribe(_view.SetBgmSlider).AddTo(_disposables);
+            _model.SeVolume.Subscribe(_view.SetSeSlider).AddTo(_disposables);
+            _model.IsMute.Subscribe(_view.SetMuteToggle).AddTo(_disposables);
+
+            // ミュート設定の変更を反映
+            _model.IsMute.Subscribe(isMute => _view.SetMute(isMute)).AddTo(_disposables);
+
+            // BGMとSEの最終的なボリュームはマスターボリュームを加味して計算して反映
+            _model.FinalBgmVolume.Subscribe(_view.SetBgmVolume).AddTo(_disposables);
+            _model.FinalSeVolume.Subscribe(_view.SetSeVolume).AddTo(_disposables);
+
+            // SEプレビュー再生
+            _model.SeVolume.Skip(1).Subscribe(_ => _view.PlaySe()).AddTo(_disposables);
+        }
+
+        /// <summary>
+        /// UIの操作を購読してモデルを更新
+        /// </summary>
+        private void SetupEvents()
+        {
+            // マスター、BGM、SEのスライダーとミュートトグル
+            // NOTE: Skip(1)で初期値の変更をスキップしている。初期値も反映したい場合はSkip(1)を削除する。
+            _view.OnMasterSliderChanged.Skip(1).Subscribe(_model.SetMasterVolume).AddTo(_disposables);
+            _view.OnBgmSliderChanged.Skip(1).Subscribe(_model.SetBgmVolume).AddTo(_disposables);
+            _view.OnSeSliderChanged.Skip(1).Subscribe(_model.SetSeVolume).AddTo(_disposables);
+            _view.OnMuteToggleChanged.Skip(1).Subscribe(_model.SetIsMute).AddTo(_disposables);
+        }
+
+        /// <summary>
+        /// 各ボリューム設定(マスター、BGM、SE)
+        /// </summary>
+        public void SetMasterVolume(float volume) => _model.SetMasterVolume(volume);
+        public void SetBgmVolume(float volume) => _model.SetBgmVolume(volume);
+        public void SetSeVolume(float volume) => _model.SetSeVolume(volume);
+    }
+}
