@@ -13,13 +13,13 @@ public class Billboard : MonoBehaviour
     /// </summary>
     void LateUpdate()
     {
-        // カメラの座標を取得
+        // Let's Try カメラの座標を取得
 
 
-        // 高さを自分と同じにして、水平方向の向きを計算
+        // Let's Try 高さを自分と同じにして、水平方向の向きを計算
 
 
-        // XとZを固定して、Y軸の回転だけ活かす
+        // Let's Try XとZを固定して、Y軸の回転だけ活かす
 
     }
 }
