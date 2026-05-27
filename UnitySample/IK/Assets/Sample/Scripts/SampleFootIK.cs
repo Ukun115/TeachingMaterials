@@ -5,7 +5,7 @@ namespace IK
     /// <summary>
     /// 足IK
     /// </summary>
-    public class FootIK : MonoBehaviour
+    public class SampleFootIK : MonoBehaviour
     {
         // スウィング中と判定するキャラクター基準の足の高さ閾値
         private static readonly float SwingFadeHeight = 0.15f;
